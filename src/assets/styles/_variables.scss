@@ -1,0 +1,97 @@
+:root {
+  /* ========= Layout ========= */
+
+  --sidebar-width: 260px;
+  --sidebar-rail-width: 72px;
+
+  --page-max-width: 1600px;
+  --page-padding: 32px;
+
+  /* ========= Spacing (4px system) ========= */
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+  --spacing-3xl: 40px;
+
+  /* ========= Radius ========= */
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+
+  /* ========= Typography ========= */
+
+  --font-family: 'Inter', sans-serif;
+
+  --font-size-page-title: 24px;
+  --font-size-column-title: 13px;
+  --font-size-card-title: 14px;
+  --font-size-card-body: 12px;
+  --font-size-meta: 11px;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* ========= Colors ========= */
+
+  --color-page: #f6f7fb;
+  --color-surface: #ffffff;
+  --color-surface-secondary: #e8e8e8;
+
+  --color-text: #111827;
+  --color-text-secondary: #6b7280;
+
+  --color-border: #e5e7eb;
+
+  /* ========= Brand ========= */
+
+  --color-primary: #635bff;
+  --color-primary-hover: #5548ff;
+  --color-primary-soft: #f2efff;
+  --color-primary-active: #ffffff;
+
+  /* ========= Sidebar ========= */
+
+  --color-sidebar-rail: #1f2029;
+  --color-hover: #f3f4f6;
+
+  /* ========= Priority ========= */
+
+  --priority-high-bg: #ffe7e7;
+  --priority-high-text: #dc2626;
+
+  --priority-medium-bg: #fff5dd;
+  --priority-medium-text: #d97706;
+
+  --priority-low-bg: #eef2ff;
+  --priority-low-text: #4f46e5;
+
+  /* ========= Status ========= */
+
+  --status-todo: #6366f1;
+  --status-progress: #f59e0b;
+  --status-done: #10b981;
+
+  /* ========= Task ========= */
+
+  --task-overdue: #dc2626;
+
+  /* ========= Shadow ========= */
+
+  --shadow-card: 0 2px 10px rgba(15, 23, 42, 0.06);
+  --shadow-panel: 0 10px 30px rgba(15, 23, 42, 0.08);
+
+  /* ========= Transition ========= */
+
+  --transition: 0.2s ease;
+}
+
+$breakpoint-desktop: 1280px;
