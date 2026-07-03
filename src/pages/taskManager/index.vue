@@ -5,7 +5,7 @@
       <PageBreadcrumb :items="[{ label: 'Team spaces' }, { label: 'Tasks' }]" />
       <PageHeader
         title="Tasks"
-        description="Short description will be placed here"
+        description="Track, organize, and manage your team's work from start to finish."
         :members="mockUsers"
       />
       <ViewToggle
