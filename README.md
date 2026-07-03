@@ -182,6 +182,20 @@ Remaining implementation:
 
 ---
 
+# Time Log
+
+| Phase           | Activity                                                         | Approx. Time |
+| --------------- | ---------------------------------------------------------------- | -----------: |
+| Setup           | Project scaffold, types, mock data, `TaskManager` skeleton       |        3 hrs |
+| Business Logic  | CRUD, filtering, sorting, bug fixes                              |        8 hrs |
+| Kanban Board    | Board, columns, cards, native drag-and-drop                      |        5 hrs |
+| List View       | Sections, rows, sorting, persistence                             |        5 hrs |
+| Task Management | Task modal                                                       |        2 hrs |
+| UI Polish       | Styling, badges, avatars, overdue states, responsive adjustments |        3 hrs |
+| Documentation   | README and final cleanup                                         |        2 hrs |
+
+**Total:** ~28 hours
+
 ## Assumptions
 
 The project intentionally follows a layered architecture where business logic is completely separated from Vue components.
