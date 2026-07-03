@@ -105,7 +105,7 @@ export class TaskManager {
     return true
   }
 
-  moveTo = (taskId: string, status: TaskStatus): void => {
+  moveTo(taskId: string, status: TaskStatus): void {
     const task = this.tasks.find((task) => task.id === taskId)
 
     if (!task || task.status === status) {

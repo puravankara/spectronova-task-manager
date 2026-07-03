@@ -86,7 +86,6 @@ src/
 
 ---
 
-
 ## Architecture Overview
 
 ### Why `TaskManager` is structured as a class
@@ -98,13 +97,11 @@ src/
 
 ### Trade-offs
 
-| Decision                                                            | Benefit                                                                                                  | Cost                                                                                                                                                                         |
-| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Plain class, not a Pinia store                                      | Framework-agnostic, easy to unit test                                                                    | No built-in reactivity — a Vue component holding a `TaskManager` instance needs to wrap it in `reactive()`/`ref()` itself, or changes won't trigger re-renders automatically |
-| `getTasks()`/`getUsers()` return live array references              | Simple, no copying overhead                                                                              | Callers can mutate the internal array directly, bypassing `createTask`/`updateTask` and any future validation logic added there                                              |
-| `users` hardcoded to `mockUsers`, no constructor injection          | One less parameter to wire up                                                                            | Inconsistent with `tasks` injection — harder to unit test methods that depend on user data with custom fixtures                                                              |
-| Sort logic keyed by a hardcoded `priorityOrder` map                 | Simple and explicit                                                                                      | Duplicates ordering already implied by the `priorities` array — the two can drift out of sync if one is reordered and not the other                                          |
-
+| Decision                                                   | Benefit                               | Cost                                                                                                                                                                         |
+| ---------------------------------------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Plain class, not a Pinia store                             | Framework-agnostic, easy to unit test | No built-in reactivity — a Vue component holding a `TaskManager` instance needs to wrap it in `reactive()`/`ref()` itself, or changes won't trigger re-renders automatically |
+| `users` hardcoded to `mockUsers`, no constructor injection | One less parameter to wire up         | Inconsistent with `tasks` injection                                                                                                                                          |
+| Sort logic keyed by a hardcoded `priorityOrder` map        | Simple and explicit                   | Duplicates ordering already implied by the `priorities` array — the two can drift out of sync if one is reordered and not the other                                          |
 
 ### Business Logic Layer (BLL)
 
@@ -192,6 +189,7 @@ Goals:
 - ✅README completion
 
 Remaining implementation:
+
 - Create task
 - Edit Task
 - Delete Task
@@ -248,7 +246,6 @@ Given additional time, `TaskManager` would be the primary target for unit testin
 
 **With more time:** I would compare elements from the other design variations through usability testing and incorporate the strongest ideas into a more refined final design.
 
-
 ### 2. Fixed sidebar with scrollable content
 
 **Decision:** The sidebar remains fixed while only the main content area scrolls.
@@ -269,17 +266,13 @@ Given additional time, `TaskManager` would be the primary target for unit testin
 
 ---
 
-
 These three read well in a README because they explain **what you chose, why you chose it, and how you'd improve it**, which is exactly what reviewers typically look for.
-
 
 ### Future Improvements
 
 - Introduce a table density toggle (Compact/Comfortable) to accommodate different user preferences.
 - Implement a dedicated mobile card layout to improve the experience on smaller screens.
 - Allow users to customize visible columns and their order for a more personalized workflow.
-
-
 
 ## Time Log
 
