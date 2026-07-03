@@ -25,15 +25,9 @@ Production-quality Task Manager built as part of a Frontend Engineer assessment.
 Install dependencies:
 
 - @lucide/vue – Used for consistent, lightweight SVG icons across the application (view toggle, priority indicators, task actions, sorting, etc.).
+  npm install @lucide/vue
 - sass-embedded – Sass compiler used to process SCSS styles.
-
-```bash
-npm install @lucide/vue
-```
-
-```bash
-npm install -D sass-embedded
-```
+  npm install -D sass-embedded
 
 ```bash
 npm install
