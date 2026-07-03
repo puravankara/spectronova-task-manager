@@ -102,6 +102,8 @@ const onMoveTask = (taskId: string, status: TaskStatus): void => {
 
 .task-contents {
   padding: 16px 32px;
+  height: 100vh;
+  overflow-y: auto;
 }
 main.overflow-hidden {
   overflow: hidden;
