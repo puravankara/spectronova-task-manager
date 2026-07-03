@@ -165,19 +165,20 @@ Goals:
 - ✅ Vue Router configured
 - ✅ ESLint configured
 - ✅ Prettier configured
+- ✅ TaskManager business layer
+- ✅ Mock data
+- ✅ Kanban board
+- ✅ List view
+- ✅ Drag and Drop
+- ✅ Show modal
+- ✅Sorting
+- ✅Responsive UI
+- ✅README completion
 
 Remaining implementation:
-
-- TaskManager business layer
-- Mock data
-- Kanban board
-- List view
-- Drag and Drop
-- Create/Edit modal
-- Filtering
-- Sorting
-- Responsive UI
-- README completion
+- Create task
+- Edit Task
+- Delete Task
 
 ---
 
