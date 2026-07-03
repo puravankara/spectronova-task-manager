@@ -4,7 +4,11 @@ import type { ViewMode } from '@/BLL/taskManager/types'
 export const useLocalStorage = () => {
   const VIEW_MODE_KEY = 'view-mode'
 
-  const activeView = ref<ViewMode>(localStorage.getItem(VIEW_MODE_KEY) as ViewMode) ?? 'board'
+  const storedView = localStorage.getItem(VIEW_MODE_KEY)
+
+  const activeView = ref<ViewMode>(
+    storedView === 'board' || storedView === 'list' ? storedView : 'board',
+  )
 
   watch(activeView, (view) => {
     localStorage.setItem(VIEW_MODE_KEY, view)
