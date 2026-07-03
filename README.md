@@ -182,7 +182,56 @@ Remaining implementation:
 
 ---
 
-# Time Log
+## Known Limitations
+
+The following functionality has not yet been completed:
+
+- **Create Task** – The task creation UI is implemented, but the create workflow is not fully wired to `TaskManager.createTask()`.
+- **Edit Task** – The edit dialog is present, but changes are not currently persisted back to the task manager.
+- **Delete Task** – The delete action and confirmation flow are not yet connected to `TaskManager.deleteTask()`.
+
+### Row Checkbox
+
+The design includes a checkbox for each list row, but its intended behaviour is not specified.
+
+Rather than guessing whether it represents bulk selection, task completion, or another interaction, it is currently left as a visual placeholder.
+
+---
+
+### Multiple Assignees
+
+The specification defines a single assignee.
+
+An optional `assignees` array was added solely to support the overlapping avatar group shown inside `TaskSlideout`.
+
+Existing behaviour remains fully compatible with the original model.
+
+---
+
+### Responsive Behaviour
+
+Testing focused on the required minimum width of **1280px**.
+
+Layouts below tablet width were intentionally not implemented.
+
+---
+
+### Mock Data
+
+All application data is loaded from mock data.
+
+No backend persistence has been implemented.
+
+---
+
+### Automated Testing
+
+Unit and component tests were not implemented within the assessment time window.
+
+Given additional time, `TaskManager` would be the primary target for unit testing due to its isolated business logic.
+
+---
+## Time Log
 
 | Phase           | Activity                                                         | Approx. Time |
 | --------------- | ---------------------------------------------------------------- | -----------: |
