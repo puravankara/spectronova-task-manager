@@ -86,9 +86,25 @@ src/
 
 ---
 
-## Architecture
 
-The application follows a layered architecture that separates business logic from presentation.
+## Architecture Overview
+
+### Why `TaskManager` is structured as a class
+
+- **Single source of truth for task/user data.** Components query and mutate state exclusively through `TaskManager` methods (`getTasks`, `createTask`, `updateTask`, `moveTo`, etc.) instead of touching arrays directly. This keeps id generation, timestamping, and status-change logic in one place instead of duplicated across components.
+- **Framework-agnostic core.** Because it's a plain TypeScript class with no Vue imports, the data layer is decoupled from the view layer. It can be unit-tested without mounting components, and could in theory be reused outside Vue (or wrapped by a Pinia store) without rewriting the logic.
+- **Constructor injection for testability.** `constructor(tasks: Task[] = mockTasks)` allows tests or Storybook stories to instantiate `TaskManager` with controlled fixtures instead of always hitting the shared mock dataset.
+- **Derived views over stored views.** Sorting/filtering (`getSortedTasks`, `getTasksByStatus`) are computed on read rather than cached, so there's no separate "sorted state" to keep in sync with the underlying `tasks` array — one array is always the source of truth.
+
+### Trade-offs
+
+| Decision                                                            | Benefit                                                                                                  | Cost                                                                                                                                                                         |
+| ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Plain class, not a Pinia store                                      | Framework-agnostic, easy to unit test                                                                    | No built-in reactivity — a Vue component holding a `TaskManager` instance needs to wrap it in `reactive()`/`ref()` itself, or changes won't trigger re-renders automatically |
+| `getTasks()`/`getUsers()` return live array references              | Simple, no copying overhead                                                                              | Callers can mutate the internal array directly, bypassing `createTask`/`updateTask` and any future validation logic added there                                              |
+| `users` hardcoded to `mockUsers`, no constructor injection          | One less parameter to wire up                                                                            | Inconsistent with `tasks` injection — harder to unit test methods that depend on user data with custom fixtures                                                              |
+| Sort logic keyed by a hardcoded `priorityOrder` map                 | Simple and explicit                                                                                      | Duplicates ordering already implied by the `priorities` array — the two can drift out of sync if one is reordered and not the other                                          |
+
 
 ### Business Logic Layer (BLL)
 
