@@ -35,6 +35,7 @@
         :task="selectedTask"
         :task-manager="taskManager"
         @close="closeTask"
+        @refresh="refreshKey++"
       />
     </div>
   </main>

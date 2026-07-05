@@ -32,6 +32,7 @@ const { task, taskManager, modelValue } = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
+  (e: 'refresh'): void
   (e: 'close'): void
 }>()
 
@@ -62,7 +63,7 @@ const resetForm = (): void => {
     populateForm(task)
   } else {
     Object.assign(formData, {
-      id: crypto.randomUUID(),
+      id: '',
       title: '',
       description: '',
       priority: 'medium',
@@ -71,7 +72,7 @@ const resetForm = (): void => {
       dueDate: '',
       status: 'todo',
       tags: [],
-      createdAt: new Date().toISOString(),
+      createdAt: '',
     })
   }
 
@@ -102,9 +103,6 @@ const isAssigneeMenuOpen = ref<boolean>(false)
 const toggleAssigneeMenu = (): void => {
   isAssigneeMenuOpen.value = !isAssigneeMenuOpen.value
 }
-const closeAssigneeMenu = (): void => {
-  isAssigneeMenuOpen.value = false
-}
 
 const isOverdue = computed(() => {
   if (!formData.dueDate) return false
@@ -120,21 +118,38 @@ const isOverdue = computed(() => {
 //   return task.priority[0]!.toUpperCase() + task.priority.slice(1)
 // })
 
-const close = (): void => {
+const closeModal = (): void => {
   emit('update:modelValue', false)
   emit('close')
 }
 
+const deleteTask = (): void => {
+  if (confirm(`Delete "${formData.title}"?`)) {
+    if (taskManager.deleteTask(formData.id)) {
+      emit('refresh')
+      closeModal()
+    }
+  }
+}
 const cancel = (): void => {
   resetForm()
 }
 
 const save = (): void => {
-  alert('save')
+  const { id, ...payload } = formData
+  if (formData.id) {
+    taskManager.updateTask(id, payload)
+  } else {
+    taskManager.createTask(payload)
+  }
+
+  closeModal()
+
+  emit('refresh')
 }
 
 const onKeydown = (event: KeyboardEvent): void => {
-  if (event.key === 'Escape' && modelValue) close()
+  if (event.key === 'Escape' && modelValue) closeModal()
 }
 
 const tabs: TaskModalTab[] = [
@@ -170,7 +185,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 <template>
   <Teleport to="body">
     <Transition name="task-modal-fade">
-      <div v-if="modelValue" class="task-modal__backdrop" @click="close" />
+      <div v-if="modelValue" class="task-modal__backdrop" @click="closeModal" />
     </Transition>
 
     <Transition name="task-modal-slide">
@@ -183,7 +198,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       >
         <!-- header actions -->
         <header class="task-modal__header">
-          <button class="task-modal__icon-btn" aria-label="Close" @click="close">
+          <button class="task-modal__icon-btn" aria-label="Close" @click="closeModal">
             <X :size="20" />
           </button>
 
@@ -433,6 +448,14 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
         </div>
 
         <footer class="task-modal__footer">
+          <button
+            v-if="formData.id"
+            class="task-modal__footer-btn task-modal__footer-btn--danger"
+            type="button"
+            @click="deleteTask"
+          >
+            Delete
+          </button>
           <button class="task-modal__footer-btn" type="button" @click="cancel">Cancel</button>
           <button
             class="task-modal__footer-btn task-modal__footer-btn--primary"
@@ -932,13 +955,14 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   // .task-modal__footer-btn
   &__footer-btn {
     padding: 8px 16px;
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     font-weight: 500;
     color: #64748b;
     background: #fff;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
     cursor: pointer;
+    transition: all 0.25s ease;
 
     &:hover {
       background: #f8fafc;
@@ -948,11 +972,23 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     // .task-modal__footer-btn--primary
     &--primary {
       color: #fff;
-      background: #4f46e5;
-      border-color: #4f46e5;
+      background: var(--btn-primary);
+      border-color: var(--btn-primary);
 
       &:hover {
-        background: #4338ca;
+        background: var(--btn-primary-focus);
+        color: #fff;
+      }
+    }
+    // .task-modal__footer-btn--danger
+    &--danger {
+      color: #fff;
+      background: var(--btn-danger);
+      border-color: var(--btn-danger);
+      margin-right: auto;
+
+      &:hover {
+        background: var(--btn-danger-focus);
         color: #fff;
       }
     }

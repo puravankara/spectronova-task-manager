@@ -92,6 +92,12 @@
   /* ========= Transition ========= */
 
   --transition: 0.2s ease;
+
+  /* ========= Button ========= */
+  --btn-primary: #4f46e5;
+  --btn-primary-focus: #362ce7;
+  --btn-danger: #dc2626;
+  --btn-danger-focus: #ad1717;
 }
 
 $breakpoint-desktop: 1280px;

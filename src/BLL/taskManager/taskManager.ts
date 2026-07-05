@@ -84,7 +84,7 @@ export class TaskManager {
   }
 
   //   update an existing task
-  updateTask(id: string, update: Partial<Omit<Task, 'id' | 'createdAt'>>): boolean {
+  updateTask(id: string, update: Partial<Omit<Task, 'id'>>): boolean {
     const task = this.tasks.find((task) => task.id === id)
     // task not found
     if (!task) return false

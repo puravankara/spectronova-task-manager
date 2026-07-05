@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import TaskCard from './TaskCard.vue'
 import type { TaskManager } from '@/BLL/taskManager/taskManager'
 import type { StatusGroup, Task, TaskStatus } from '@/BLL/taskManager/types'
+import { Plus } from '@lucide/vue'
 
 const { taskManager, column } = defineProps<{
   taskManager: TaskManager
@@ -54,6 +55,8 @@ const emit = defineEmits<{
       <span class="kanban-column__count" :style="{ background: column.color }">
         {{ tasks.length }}
       </span>
+
+      <Plus :size="14" style="margin-left: auto" />
     </header>
 
     <div class="kanban-column__body">
