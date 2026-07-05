@@ -127,8 +127,8 @@ export class TaskManager {
 
   getAssignees(assigneeIds: string[]): User[] {
     return assigneeIds
-      .map((id) => this.users.find((user) => user.id == id))
-      .filter((user) => user !== undefined)
+      .map((id) => this.users.find((user) => user.id === id))
+      .filter((user): user is User => user !== undefined)
   }
 
   getLoggedInUser() {

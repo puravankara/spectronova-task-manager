@@ -10,6 +10,8 @@ import {
   Users,
   Star,
   MoreVertical,
+  User2,
+  ChevronDown,
 } from '@lucide/vue'
 import type {
   Task,
@@ -58,20 +60,22 @@ const resetForm = (): void => {
   // reset with props.task
   if (task) {
     populateForm(task)
-    return
+  } else {
+    Object.assign(formData, {
+      id: crypto.randomUUID(),
+      title: '',
+      description: '',
+      priority: 'medium',
+      assigneeId: '',
+      assignees: [],
+      dueDate: '',
+      status: 'todo',
+      tags: [],
+      createdAt: new Date().toISOString(),
+    })
   }
-  Object.assign(formData, {
-    id: crypto.randomUUID(),
-    title: '',
-    description: '',
-    priority: 'medium',
-    assigneeId: '',
-    assignees: [],
-    dueDate: '',
-    status: 'todo',
-    tags: [],
-    createdAt: new Date().toISOString(),
-  })
+
+  tagsInput.value = formData.tags.join(', ')
 }
 
 populateForm(task)
@@ -80,34 +84,37 @@ const columns = computed(() => taskManager.getCloumns())
 
 const priorities = computed(() => taskManager.getPriorities())
 
-const tabs: TaskModalTab[] = [
-  { label: 'Activity', value: 'activity' },
-  { label: 'My Work', value: 'my-work' },
-  { label: 'Assigned', value: 'assigned' },
-  { label: 'Comments', value: 'comments' },
-]
+const tagsInput = ref<string>('')
 
-const activeTab = ref<TaskModalTabValue>('activity')
-
-const selectTab = (tab: TaskModalTabValue): void => {
-  activeTab.value = tab
+const syncTags = (): void => {
+  formData.tags = tagsInput.value
+    .split(',')
+    .map((tag) => tag.trim())
+    .filter(Boolean)
 }
 
-// const statusMeta = computed(() => {
-//   return taskManager.getCloumns().find((column) => column.status === task.status)
-// })
+const users = computed(() => taskManager.getUsers())
 
-const assigneeUsers = computed<User[]>(() =>
-  task.assignees
-    .map((id) => taskManager.getUser(id))
-    .filter((user): user is User => user !== undefined),
-)
+const selectedAssignees = computed<User[]>(() => taskManager.getAssignees(formData.assignees))
+
+const isAssigneeMenuOpen = ref<boolean>(false)
+
+const toggleAssigneeMenu = (): void => {
+  isAssigneeMenuOpen.value = !isAssigneeMenuOpen.value
+}
+const closeAssigneeMenu = (): void => {
+  isAssigneeMenuOpen.value = false
+}
 
 const isOverdue = computed(() => {
   if (!formData.dueDate) return false
 
   return formData.status !== 'done' && new Date(formData.dueDate).getTime() < Date.now()
 })
+
+// const statusMeta = computed(() => {
+//   return taskManager.getCloumns().find((column) => column.status === task.status)
+// })
 
 // const priorityLabel = computed(() => {
 //   return task.priority[0]!.toUpperCase() + task.priority.slice(1)
@@ -130,10 +137,24 @@ const onKeydown = (event: KeyboardEvent): void => {
   if (event.key === 'Escape' && modelValue) close()
 }
 
+const tabs: TaskModalTab[] = [
+  { label: 'Activity', value: 'activity' },
+  { label: 'My Work', value: 'my-work' },
+  { label: 'Assigned', value: 'assigned' },
+  { label: 'Comments', value: 'comments' },
+]
+
+const activeTab = ref<TaskModalTabValue>('activity')
+
+const selectTab = (tab: TaskModalTabValue): void => {
+  activeTab.value = tab
+}
+
 watch(
   () => modelValue,
   (isOpen) => {
     if (isOpen) {
+      resetForm()
       activeTab.value = 'activity'
       window.addEventListener('keydown', onKeydown)
     } else {
@@ -160,6 +181,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
         aria-modal="true"
         :aria-label="task.title"
       >
+        <!-- header actions -->
         <header class="task-modal__header">
           <button class="task-modal__icon-btn" aria-label="Close" @click="close">
             <X :size="20" />
@@ -178,7 +200,9 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
           </div>
         </header>
 
+        <!-- form -->
         <div class="task-modal__body">
+          <!-- title -->
           <input
             type="text"
             v-model="formData.title"
@@ -186,7 +210,9 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
             class="task-modal__title-input"
           />
 
+          <!-- meta -->
           <dl class="task-modal__meta">
+            <!-- created time -->
             <div class="task-modal__meta-row">
               <dt class="task-modal__meta-label">
                 <Clock :size="16" />
@@ -195,6 +221,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
               <dd class="task-modal__meta-value">{{ formatDate(task.createdAt) }}</dd>
             </div>
 
+            <!-- status -->
             <div class="task-modal__meta-row">
               <dt class="task-modal__meta-label">
                 <Loader2 :size="16" />
@@ -215,6 +242,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
               </dd>
             </div>
 
+            <!-- priority -->
             <div class="task-modal__meta-row">
               <dt class="task-modal__meta-label">
                 <CheckCircle2 :size="16" />
@@ -226,7 +254,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
                   name="modal-priority"
                   id="modal-priority"
                   class="task-modal__select task-modal__select--priority"
-                  :class="`task-modal__select-priority-${formData.priority}`"
+                  :class="`task-modal__select--priority-${formData.priority}`"
                 >
                   <option
                     v-for="priority in priorities"
@@ -239,6 +267,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
               </dd>
             </div>
 
+            <!-- due date -->
             <div class="task-modal__meta-row">
               <dt class="task-modal__meta-label">
                 <Calendar :size="16" />
@@ -253,12 +282,13 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
                   type="date"
                   name="modal-due-date"
                   id="modal-due-date"
-                  class="task-modal__input"
+                  class="task-modal__date-input"
                 />
                 <span v-if="isOverdue" class="task-modal__overdue-tag">Overdue</span>
               </dd>
             </div>
 
+            <!-- tags -->
             <div class="task-modal__meta-row">
               <dt class="task-modal__meta-label">
                 <Tag :size="16" />
@@ -266,56 +296,124 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
               </dt>
               <dd class="task-modal__meta-value">
                 <div class="task-modal__tags">
-                  <span v-for="tag in task.tags" :key="tag" class="task-modal__tag-chip">
+                  <span v-for="tag in formData.tags" :key="tag" class="task-modal__tag-chip">
                     {{ tag }}
                   </span>
                   <span v-if="task.tags.length === 0" class="task-modal__empty-hint">
                     No tags
                   </span>
+                  <input
+                    v-model="tagsInput"
+                    type="text"
+                    placeholder="Add tags seperated by commas"
+                    class="task-modal__text-input"
+                    @blur="syncTags"
+                  />
                 </div>
               </dd>
             </div>
 
+            <!-- team lead -->
+            <div class="task-modal__meta-row">
+              <dt class="task-modal__meta-label">
+                <User2 :size="16" />
+                <span>Lead</span>
+              </dt>
+              <dd class="task-modal__meta-value">
+                <select
+                  v-model="formData.assigneeId"
+                  name="team-lead"
+                  id="team-lead"
+                  class="task-modal__select"
+                >
+                  <option v-for="user in users" :key="user.id" :value="user.id">
+                    {{ user.name }}
+                  </option>
+                </select>
+              </dd>
+            </div>
+
+            <!-- team -->
             <div class="task-modal__meta-row">
               <dt class="task-modal__meta-label">
                 <Users :size="16" />
-                <span>Assignees</span>
+                <span>Team</span>
               </dt>
+
               <dd class="task-modal__meta-value">
-                <div class="task-modal__avatars">
-                  <div
-                    v-for="user in assigneeUsers"
-                    :key="user.id"
-                    class="task-modal__avatar"
-                    :style="{ '--avatar-color': getAvatarColor(user.name) }"
-                    :title="user.name"
+                <div class="task-modal__assignee-picker">
+                  <!-- Trigger -->
+                  <button
+                    type="button"
+                    class="task-modal__assignee-trigger"
+                    :style="{ borderColor: isAssigneeMenuOpen ? 'black' : '#e2e8f0' }"
+                    @click="toggleAssigneeMenu"
                   >
-                    <img v-if="user.avatar" :src="user.avatar" :alt="user.name" />
-                    <span v-else>{{ getInitials(user.name) }}</span>
+                    <div class="task-modal__avatars">
+                      <div
+                        v-for="user in selectedAssignees"
+                        :key="user.id"
+                        class="task-modal__avatar"
+                        :title="user.name"
+                        :style="{ backgroundColor: getAvatarColor(user.name) }"
+                      >
+                        <img v-if="user.avatar" :src="user.avatar" :alt="user.name" />
+                        <span v-else>
+                          {{ getInitials(user.name) }}
+                        </span>
+                      </div>
+
+                      <span v-if="selectedAssignees.length === 0" class="task-modal__empty-hint">
+                        Select team members
+                      </span>
+                    </div>
+
+                    <ChevronDown :size="16" />
+                  </button>
+
+                  <!-- Dropdown -->
+                  <div v-if="isAssigneeMenuOpen" class="task-modal__assignee-dropdown">
+                    <label v-for="user in users" :key="user.id" class="task-modal__assignee-option">
+                      <input v-model="formData.assignees" type="checkbox" :value="user.id" />
+
+                      <img
+                        v-if="user.avatar"
+                        :src="user.avatar"
+                        :alt="user.name"
+                        class="task-modal__avatar"
+                      />
+                      <span
+                        v-else
+                        class="task-modal__avatar-initials"
+                        :style="{ backgroundColor: getAvatarColor(user.name) }"
+                        >{{ getInitials(user.name) }}</span
+                      >
+
+                      <span>{{ user.name }}</span>
+                    </label>
                   </div>
-                  <span v-if="assigneeUsers.length === 0" class="task-modal__empty-hint">
-                    Unassigned
-                  </span>
                 </div>
               </dd>
             </div>
           </dl>
 
+          <!-- description -->
           <div class="task-modal__description">
             <h3 class="task-modal__description-title">Description</h3>
             <!-- <p v-if="task.description" class="task-modal__description-text">
               {{ task.description }}
             </p> -->
-            <input
+            <textarea
               v-model="formData.description"
-              type="text"
+              rows="4"
               placeholder="Description"
-              class="task-modal__description-input"
+              class="task-modal__text-input"
             />
             <!-- <p v-else class="task-modal__description-text">No description</p> -->
           </div>
         </div>
 
+        <!-- tabs -->
         <div class="task-modal__tabs">
           <button
             v-for="tab in tabs"
@@ -334,10 +432,10 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
           </p>
         </div>
 
-        <footer class="task-slideout__footer">
-          <button class="task-slideout__footer-btn" type="button" @click="cancel">Cancel</button>
+        <footer class="task-modal__footer">
+          <button class="task-modal__footer-btn" type="button" @click="cancel">Cancel</button>
           <button
-            class="task-slideout__footer-btn task-slideout__footer-btn--primary"
+            class="task-modal__footer-btn task-modal__footer-btn--primary"
             type="button"
             @click="save"
           >
@@ -541,9 +639,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     width: 20px;
     height: 20px;
     margin-left: -8px;
-    font-size: 11px;
+    font-size: 9px;
     font-weight: 600;
-    color: #fff;
     background: var(--avatar-color, #6366f1);
     border: 2px solid #fff;
     border-radius: 999px;
@@ -651,5 +748,214 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 .task-modal-slide-enter-from,
 .task-modal-slide-leave-to {
   transform: translateX(100%);
+}
+
+.task-modal {
+  // .task-modal__title-input
+  &__title-input {
+    width: 100%;
+    margin: 0 0 24px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0f172a;
+    outline: none;
+
+    &::placeholder {
+      color: #94a3b8;
+    }
+  }
+  // .task-modal__select
+  &__select {
+    min-width: 120px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    outline: none;
+
+    // .task-modal__select--status-todo
+    &--status-todo {
+      background: color-mix(in srgb, var(--status-todo) 16%, white);
+      color: var(--status-todo);
+    }
+
+    // .task-modal__select--status-in-progress
+    &--status-in-progress {
+      background: color-mix(in srgb, var(--status-progress) 16%, white);
+      color: var(--status-progress);
+    }
+
+    // .task-modal__select--status-done
+    &--status-done {
+      background: color-mix(in srgb, var(--status-done) 16%, white);
+      color: var(--status-done);
+    }
+
+    // .task-modal__select--priority-low
+    &--priority-low {
+      background: #eef2ff;
+      color: #4f46e5;
+    }
+
+    // .task-modal__select--priority-medium
+    &--priority-medium {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    // .task-modal__select--priority-high
+    &--priority-high {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+  }
+  &__date-input {
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    outline: none;
+
+    &:focus {
+      border-color: #4f46e5;
+    }
+
+    // .task-modal__date-input--error
+    &--error {
+      border-color: #dc2626;
+    }
+
+    // .task-modal__date-input--overdue
+    &--overdue {
+      color: #dc2626;
+    }
+  }
+
+  // .task-modal_text-input
+  &__text-input {
+    width: 100%;
+    padding: 6px 10px;
+    font-size: 12px;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    outline: none;
+
+    &:focus {
+      border-color: #4f46e5;
+    }
+  }
+
+  // .task-modal__assignee-picker
+  &__assignee-picker {
+    position: relative;
+  }
+
+  // .task-modal__assignee-trigger
+  &__assignee-trigger {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  // .task-modal__avatars
+  &__avatars {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  // .task-modal__avatar-initials
+  &__avatar-initials {
+    border-radius: 50%;
+    margin-left: -8px;
+    padding: 0;
+    height: 20px;
+    width: 20px;
+    display: flex;
+    align-items: center;
+  }
+
+  // .task-modal__assignee-dropdown
+  &__assignee-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+
+    width: 260px;
+
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+
+    padding: 8px;
+
+    z-index: 100;
+  }
+
+  // .task-modal__assignee-option
+  &__assignee-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 8px 10px;
+    cursor: pointer;
+  }
+
+  // .task-modal__footer
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 24px;
+    margin-top: auto;
+    border-top: 1px solid #e2e8f0;
+    background: #fff;
+  }
+
+  // .task-modal__footer-btn
+  &__footer-btn {
+    padding: 8px 16px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #64748b;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+
+    &:hover {
+      background: #f8fafc;
+      color: #0f172a;
+    }
+
+    // .task-modal__footer-btn--primary
+    &--primary {
+      color: #fff;
+      background: #4f46e5;
+      border-color: #4f46e5;
+
+      &:hover {
+        background: #4338ca;
+        color: #fff;
+      }
+    }
+  }
 }
 </style>
