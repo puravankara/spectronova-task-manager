@@ -17,6 +17,7 @@ const onMoveTask = (taskId: string, status: TaskStatus): void => {
 
 const emit = defineEmits<{
   (e: 'open', task: Task): void
+  (e: 'create-task', status: TaskStatus): void
   (e: 'move-task', taskId: string, status: TaskStatus): void
 }>()
 </script>
@@ -30,6 +31,7 @@ const emit = defineEmits<{
       :column="column"
       @open="emit('open', $event)"
       @move-task="onMoveTask"
+      @create-task="emit('create-task', column.status)"
     />
   </section>
 </template>

@@ -22,6 +22,7 @@
         :task-manager="taskManager"
         @open="openTask"
         @move-task="onMoveTask"
+        @create-task="createTask"
       />
       <ListView
         v-else-if="currentView === 'list'"
@@ -75,6 +76,23 @@ const openTask = (task: Task): void => {
 
 const closeTask = (): void => {
   selectedTask.value = null
+}
+
+const createTask = (status: TaskStatus): void => {
+  selectedTask.value = {
+    id: '',
+    title: '',
+    description: '',
+    priority: 'medium',
+    assigneeId: '',
+    assignees: [],
+    dueDate: '',
+    status: status,
+    tags: [],
+    createdAt: '',
+  }
+
+  isTaskModalOpen.value = true
 }
 
 const sortField = ref<SortField>('dueDate')

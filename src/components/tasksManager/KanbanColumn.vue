@@ -40,6 +40,7 @@ const onDrop = (event: DragEvent): void => {
 
 const emit = defineEmits<{
   (e: 'open', task: Task): void
+  (e: 'create-task', status: TaskStatus): void
   (e: 'move-task', taskId: string, status: TaskStatus): void
 }>()
 </script>
@@ -56,7 +57,11 @@ const emit = defineEmits<{
         {{ tasks.length }}
       </span>
 
-      <Plus :size="14" style="margin-left: auto" />
+      <Plus
+        class="kanban-column__new-task"
+        :size="14"
+        @click="emit('create-task', column.status)"
+      />
     </header>
 
     <div class="kanban-column__body">
@@ -131,6 +136,12 @@ const emit = defineEmits<{
     color: var(--color-surface);
     font-size: var(--font-size-meta);
     font-weight: var(--font-weight-semibold);
+  }
+
+  // .kanban-column__new-task {
+  &__new-task {
+    margin-left: auto;
+    cursor: pointer;
   }
 
   // .kanban-column__body

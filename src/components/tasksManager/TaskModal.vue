@@ -110,14 +110,6 @@ const isOverdue = computed(() => {
   return formData.status !== 'done' && new Date(formData.dueDate).getTime() < Date.now()
 })
 
-// const statusMeta = computed(() => {
-//   return taskManager.getCloumns().find((column) => column.status === task.status)
-// })
-
-// const priorityLabel = computed(() => {
-//   return task.priority[0]!.toUpperCase() + task.priority.slice(1)
-// })
-
 const closeModal = (): void => {
   emit('update:modelValue', false)
   emit('close')
@@ -228,12 +220,12 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
           <!-- meta -->
           <dl class="task-modal__meta">
             <!-- created time -->
-            <div class="task-modal__meta-row">
+            <div v-if="formData.createdAt" class="task-modal__meta-row">
               <dt class="task-modal__meta-label">
                 <Clock :size="16" />
                 <span>Created time</span>
               </dt>
-              <dd class="task-modal__meta-value">{{ formatDate(task.createdAt) }}</dd>
+              <dd class="task-modal__meta-value">{{ formatDate(formData.createdAt) }}</dd>
             </div>
 
             <!-- status -->
@@ -314,7 +306,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
                   <span v-for="tag in formData.tags" :key="tag" class="task-modal__tag-chip">
                     {{ tag }}
                   </span>
-                  <span v-if="task.tags.length === 0" class="task-modal__empty-hint">
+                  <span v-if="formData.tags.length === 0" class="task-modal__empty-hint">
                     No tags
                   </span>
                   <input
@@ -415,9 +407,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
           <!-- description -->
           <div class="task-modal__description">
             <h3 class="task-modal__description-title">Description</h3>
-            <!-- <p v-if="task.description" class="task-modal__description-text">
-              {{ task.description }}
-            </p> -->
             <textarea
               v-model="formData.description"
               rows="4"
