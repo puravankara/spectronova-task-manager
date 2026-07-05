@@ -180,6 +180,10 @@ export class TaskManager {
     },
   ]
 
+  getPriorities() {
+    return this.priorities
+  }
+
   getPriority(priority: TaskPriority): PriorityMeta {
     return this.priorities.find((item) => item.priority === priority)!
   }

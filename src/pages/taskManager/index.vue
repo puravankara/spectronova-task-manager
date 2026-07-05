@@ -31,7 +31,7 @@
       />
       <TaskModal
         v-if="selectedTask"
-        v-model="isTaskSlideoutOpen"
+        v-model="isTaskModalOpen"
         :task="selectedTask"
         :task-manager="taskManager"
         @close="closeTask"
@@ -65,11 +65,11 @@ const loggedInUser = computed(() => taskManager.getLoggedInUser())
 const currentView = ref<ViewMode>('board')
 
 const selectedTask = ref<Task | null>(null)
-const isTaskSlideoutOpen = ref(false)
+const isTaskModalOpen = ref(false)
 
 const openTask = (task: Task): void => {
   selectedTask.value = task
-  isTaskSlideoutOpen.value = true
+  isTaskModalOpen.value = true
 }
 
 const closeTask = (): void => {

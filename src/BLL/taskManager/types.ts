@@ -26,6 +26,19 @@ export interface Task {
   createdAt: string
 }
 
+export interface TaskForm {
+  id: string
+  title: string
+  description: string
+  priority: TaskPriority
+  dueDate: string
+  assigneeId: string
+  assignees: string[]
+  status: TaskStatus
+  tags: string[]
+  createdAt: string
+}
+
 // Represents the filter criteria used to narrow down the visible tasks.
 export interface TaskFilter {
   priority?: TaskPriority
@@ -77,9 +90,9 @@ export interface PriorityMeta {
 
 // Identifies which bottom tab of the task slideout is active. Content for
 // these tabs is not wired to real data yet, only the tab switching itself.
-export type TaskSlideoutTabValue = 'activity' | 'my-work' | 'assigned' | 'comments'
+export type TaskModalTabValue = 'activity' | 'my-work' | 'assigned' | 'comments'
 
-export interface TaskSlideoutTab {
+export interface TaskModalTab {
   label: string
-  value: TaskSlideoutTabValue
+  value: TaskModalTabValue
 }

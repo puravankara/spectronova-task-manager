@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, onBeforeUnmount } from 'vue'
+import { computed, ref, watch, onBeforeUnmount, reactive } from 'vue'
 import {
   X,
   Clock,
@@ -11,7 +11,13 @@ import {
   Star,
   MoreVertical,
 } from '@lucide/vue'
-import type { Task, TaskSlideoutTab, TaskSlideoutTabValue, User } from '../../BLL/taskManager/types'
+import type {
+  Task,
+  TaskForm,
+  TaskModalTab,
+  TaskModalTabValue,
+  User,
+} from '../../BLL/taskManager/types'
 import type { TaskManager } from '@/BLL/taskManager/taskManager'
 import { getAvatarColor, getInitials } from '@/utils/avatar'
 import { formatDate } from '@/utils/date'
@@ -27,22 +33,69 @@ const emit = defineEmits<{
   (e: 'close'): void
 }>()
 
-const tabs: TaskSlideoutTab[] = [
+const formData = reactive<TaskForm>({
+  id: '',
+  title: '',
+  description: '',
+  priority: 'medium',
+  assigneeId: '',
+  assignees: [],
+  dueDate: '',
+  status: 'todo',
+  tags: [],
+  createdAt: '',
+})
+
+const populateForm = (task: Task): void => {
+  Object.assign(formData, {
+    ...task,
+    tags: [...task.tags],
+    assignees: [...task.assignees],
+  })
+}
+
+const resetForm = (): void => {
+  // reset with props.task
+  if (task) {
+    populateForm(task)
+    return
+  }
+  Object.assign(formData, {
+    id: crypto.randomUUID(),
+    title: '',
+    description: '',
+    priority: 'medium',
+    assigneeId: '',
+    assignees: [],
+    dueDate: '',
+    status: 'todo',
+    tags: [],
+    createdAt: new Date().toISOString(),
+  })
+}
+
+populateForm(task)
+
+const columns = computed(() => taskManager.getCloumns())
+
+const priorities = computed(() => taskManager.getPriorities())
+
+const tabs: TaskModalTab[] = [
   { label: 'Activity', value: 'activity' },
   { label: 'My Work', value: 'my-work' },
   { label: 'Assigned', value: 'assigned' },
   { label: 'Comments', value: 'comments' },
 ]
 
-const activeTab = ref<TaskSlideoutTabValue>('activity')
+const activeTab = ref<TaskModalTabValue>('activity')
 
-const selectTab = (tab: TaskSlideoutTabValue): void => {
+const selectTab = (tab: TaskModalTabValue): void => {
   activeTab.value = tab
 }
 
-const statusMeta = computed(() => {
-  return taskManager.getCloumns().find((column) => column.status === task.status)
-})
+// const statusMeta = computed(() => {
+//   return taskManager.getCloumns().find((column) => column.status === task.status)
+// })
 
 const assigneeUsers = computed<User[]>(() =>
   task.assignees
@@ -51,16 +104,26 @@ const assigneeUsers = computed<User[]>(() =>
 )
 
 const isOverdue = computed(() => {
-  return task.status !== 'done' && new Date(task.dueDate).getTime() < Date.now()
+  if (!formData.dueDate) return false
+
+  return formData.status !== 'done' && new Date(formData.dueDate).getTime() < Date.now()
 })
 
-const priorityLabel = computed(() => {
-  return task.priority[0]!.toUpperCase() + task.priority.slice(1)
-})
+// const priorityLabel = computed(() => {
+//   return task.priority[0]!.toUpperCase() + task.priority.slice(1)
+// })
 
 const close = (): void => {
   emit('update:modelValue', false)
   emit('close')
+}
+
+const cancel = (): void => {
+  resetForm()
+}
+
+const save = (): void => {
+  alert('save')
 }
 
 const onKeydown = (event: KeyboardEvent): void => {
@@ -85,129 +148,152 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
 <template>
   <Teleport to="body">
-    <Transition name="task-slideout-fade">
-      <div v-if="modelValue" class="task-slideout__backdrop" @click="close" />
+    <Transition name="task-modal-fade">
+      <div v-if="modelValue" class="task-modal__backdrop" @click="close" />
     </Transition>
 
-    <Transition name="task-slideout-slide">
+    <Transition name="task-modal-slide">
       <aside
         v-if="modelValue"
-        class="task-slideout"
+        class="task-modal"
         role="dialog"
         aria-modal="true"
         :aria-label="task.title"
       >
-        <header class="task-slideout__header">
-          <button class="task-slideout__icon-btn" aria-label="Close" @click="close">
+        <header class="task-modal__header">
+          <button class="task-modal__icon-btn" aria-label="Close" @click="close">
             <X :size="20" />
           </button>
 
-          <div class="task-slideout__header-actions">
-            <button class="task-slideout__icon-btn" aria-label="History">
+          <div class="task-modal__header-actions">
+            <button class="task-modal__icon-btn" aria-label="History">
               <Clock :size="18" />
             </button>
-            <button class="task-slideout__icon-btn" aria-label="Favorite">
+            <button class="task-modal__icon-btn" aria-label="Favorite">
               <Star :size="18" />
             </button>
-            <button class="task-slideout__icon-btn" aria-label="More options">
+            <button class="task-modal__icon-btn" aria-label="More options">
               <MoreVertical :size="18" />
             </button>
           </div>
         </header>
 
-        <div class="task-slideout__body">
-          <h2 class="task-slideout__title">{{ task.title }}</h2>
+        <div class="task-modal__body">
+          <input
+            type="text"
+            v-model="formData.title"
+            placeholder="Task Title"
+            class="task-modal__title-input"
+          />
 
-          <dl class="task-slideout__meta">
-            <div class="task-slideout__meta-row">
-              <dt class="task-slideout__meta-label">
+          <dl class="task-modal__meta">
+            <div class="task-modal__meta-row">
+              <dt class="task-modal__meta-label">
                 <Clock :size="16" />
                 <span>Created time</span>
               </dt>
-              <dd class="task-slideout__meta-value">{{ formatDate(task.createdAt) }}</dd>
+              <dd class="task-modal__meta-value">{{ formatDate(task.createdAt) }}</dd>
             </div>
 
-            <div class="task-slideout__meta-row">
-              <dt class="task-slideout__meta-label">
+            <div class="task-modal__meta-row">
+              <dt class="task-modal__meta-label">
                 <Loader2 :size="16" />
                 <span>Status</span>
               </dt>
-              <dd class="task-slideout__meta-value">
-                <span
-                  v-if="statusMeta"
-                  class="task-slideout__badge"
-                  :style="{ '--badge-color': statusMeta.color }"
+              <dd class="task-modal__meta-value">
+                <select
+                  v-model="formData.status"
+                  name="modal-status"
+                  id="modal-status"
+                  class="task-modal__select task-modal__select--status"
+                  :class="`task-modal__select--status-${formData.status}`"
                 >
-                  <span class="task-slideout__badge-dot" />
-                  {{ statusMeta.title }}
-                </span>
+                  <option v-for="column in columns" :key="column.status" :value="column.status">
+                    {{ column.title }}
+                  </option>
+                </select>
               </dd>
             </div>
 
-            <div class="task-slideout__meta-row">
-              <dt class="task-slideout__meta-label">
+            <div class="task-modal__meta-row">
+              <dt class="task-modal__meta-label">
                 <CheckCircle2 :size="16" />
                 <span>Priority</span>
               </dt>
-              <dd class="task-slideout__meta-value">
-                <span
-                  class="task-slideout__badge task-slideout__badge--priority"
-                  :class="`task-slideout__badge--priority-${task.priority}`"
+              <dd class="task-modal__meta-value">
+                <select
+                  v-model="formData.priority"
+                  name="modal-priority"
+                  id="modal-priority"
+                  class="task-modal__select task-modal__select--priority"
+                  :class="`task-modal__select-priority-${formData.priority}`"
                 >
-                  {{ priorityLabel }}
-                </span>
+                  <option
+                    v-for="priority in priorities"
+                    :key="priority.priority"
+                    :value="priority.priority"
+                  >
+                    {{ priority.label }}
+                  </option>
+                </select>
               </dd>
             </div>
 
-            <div class="task-slideout__meta-row">
-              <dt class="task-slideout__meta-label">
+            <div class="task-modal__meta-row">
+              <dt class="task-modal__meta-label">
                 <Calendar :size="16" />
                 <span>Due Date</span>
               </dt>
               <dd
-                class="task-slideout__meta-value"
-                :class="{ 'task-slideout__meta-value--overdue': isOverdue }"
+                class="task-modal__meta-value"
+                :class="{ 'task-modal__meta-value--overdue': isOverdue }"
               >
-                {{ formatDate(task.dueDate) }}
-                <span v-if="isOverdue" class="task-slideout__overdue-tag">Overdue</span>
+                <input
+                  v-model="formData.dueDate"
+                  type="date"
+                  name="modal-due-date"
+                  id="modal-due-date"
+                  class="task-modal__input"
+                />
+                <span v-if="isOverdue" class="task-modal__overdue-tag">Overdue</span>
               </dd>
             </div>
 
-            <div class="task-slideout__meta-row">
-              <dt class="task-slideout__meta-label">
+            <div class="task-modal__meta-row">
+              <dt class="task-modal__meta-label">
                 <Tag :size="16" />
                 <span>Tags</span>
               </dt>
-              <dd class="task-slideout__meta-value">
-                <div class="task-slideout__tags">
-                  <span v-for="tag in task.tags" :key="tag" class="task-slideout__tag-chip">
+              <dd class="task-modal__meta-value">
+                <div class="task-modal__tags">
+                  <span v-for="tag in task.tags" :key="tag" class="task-modal__tag-chip">
                     {{ tag }}
                   </span>
-                  <span v-if="task.tags.length === 0" class="task-slideout__empty-hint">
+                  <span v-if="task.tags.length === 0" class="task-modal__empty-hint">
                     No tags
                   </span>
                 </div>
               </dd>
             </div>
 
-            <div class="task-slideout__meta-row">
-              <dt class="task-slideout__meta-label">
+            <div class="task-modal__meta-row">
+              <dt class="task-modal__meta-label">
                 <Users :size="16" />
                 <span>Assignees</span>
               </dt>
-              <dd class="task-slideout__meta-value">
-                <div class="task-slideout__avatars">
+              <dd class="task-modal__meta-value">
+                <div class="task-modal__avatars">
                   <div
                     v-for="user in assigneeUsers"
                     :key="user.id"
-                    class="task-slideout__avatar"
+                    class="task-modal__avatar"
                     :style="{ '--avatar-color': getAvatarColor(user.name) }"
                     :title="user.name"
                   >
                     <img v-if="user.avatar" :src="user.avatar" :alt="user.name" />
                     <span v-else>{{ getInitials(user.name) }}</span>
                   </div>
-                  <span v-if="assigneeUsers.length === 0" class="task-slideout__empty-hint">
+                  <span v-if="assigneeUsers.length === 0" class="task-modal__empty-hint">
                     Unassigned
                   </span>
                 </div>
@@ -215,39 +301,56 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
             </div>
           </dl>
 
-          <div class="task-slideout__description">
-            <h3 class="task-slideout__description-title">Description</h3>
-            <p v-if="task.description" class="task-slideout__description-text">
+          <div class="task-modal__description">
+            <h3 class="task-modal__description-title">Description</h3>
+            <!-- <p v-if="task.description" class="task-modal__description-text">
               {{ task.description }}
-            </p>
-            <p v-else class="task-slideout__description-text">No description</p>
+            </p> -->
+            <input
+              v-model="formData.description"
+              type="text"
+              placeholder="Description"
+              class="task-modal__description-input"
+            />
+            <!-- <p v-else class="task-modal__description-text">No description</p> -->
           </div>
         </div>
 
-        <div class="task-slideout__tabs">
+        <div class="task-modal__tabs">
           <button
             v-for="tab in tabs"
             :key="tab.value"
-            class="task-slideout__tab"
-            :class="{ 'task-slideout__tab--active': activeTab === tab.value }"
+            class="task-modal__tab"
+            :class="{ 'task-modal__tab--active': activeTab === tab.value }"
             @click="selectTab(tab.value)"
           >
             {{ tab.label }}
           </button>
         </div>
 
-        <div class="task-slideout__tab-content">
-          <p class="task-slideout__empty-hint">
+        <div class="task-modal__tab-content">
+          <p class="task-modal__empty-hint">
             {{ tabs.find((tab) => tab.value === activeTab)?.label }}.
           </p>
         </div>
+
+        <footer class="task-slideout__footer">
+          <button class="task-slideout__footer-btn" type="button" @click="cancel">Cancel</button>
+          <button
+            class="task-slideout__footer-btn task-slideout__footer-btn--primary"
+            type="button"
+            @click="save"
+          >
+            Save
+          </button>
+        </footer>
       </aside>
     </Transition>
   </Teleport>
 </template>
 
 <style lang="scss" scoped>
-.task-slideout {
+.task-modal {
   position: fixed;
   top: 16px;
   right: 16px;
@@ -261,7 +364,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   flex-direction: column;
   overflow-y: auto;
 
-  // .task-slideout__header
+  // .task-modal__header
   &__header {
     display: flex;
     align-items: center;
@@ -269,13 +372,13 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     padding: 12px;
   }
 
-  // .task-slideout__header-actions
+  // .task-modal__header-actions
   &__header-actions {
     display: flex;
     gap: 8px;
   }
 
-  // .task-slideout__icon-btn
+  // .task-modal__icon-btn
   &__icon-btn {
     display: inline-flex;
     align-items: center;
@@ -294,14 +397,14 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     }
   }
 
-  // .task-slideout__body
+  // .task-modal__body
   &__body {
     padding: 20px 24px 0;
     border-top: 1px solid #ddd;
     border-bottom: 1px solid var(--color-border);
   }
 
-  // .task-slideout__title
+  // .task-modal__title
   &__title {
     margin: 0 0 24px;
     font-size: 1.5rem;
@@ -309,7 +412,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     color: #0f172a;
   }
 
-  // .task-slideout__meta
+  // .task-modal__meta
   &__meta {
     display: flex;
     flex-direction: column;
@@ -317,7 +420,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     margin: 0 0 24px;
   }
 
-  // .task-slideout__meta-row
+  // .task-modal__meta-row
   &__meta-row {
     display: grid;
     grid-template-columns: 160px 1fr;
@@ -325,7 +428,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     gap: 12px;
   }
 
-  // .task-slideout__meta-label
+  // .task-modal__meta-label
   &__meta-label {
     display: flex;
     align-items: center;
@@ -341,14 +444,14 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     }
   }
 
-  // .task-slideout__meta-value
+  // .task-modal__meta-value
   &__meta-value {
     margin: 0;
     font-size: 12px;
     font-weight: 500;
     color: #0f172a;
 
-    // .task-slideout__meta-value--overdue
+    // .task-modal__meta-value--overdue
     &--overdue {
       display: flex;
       align-items: center;
@@ -357,7 +460,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     }
   }
 
-  // .task-slideout__overdue-tag
+  // .task-modal__overdue-tag
   &__overdue-tag {
     padding: 2px 8px;
     font-size: 11px;
@@ -367,7 +470,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     border-radius: 999px;
   }
 
-  // .task-slideout__badge
+  // .task-modal__badge
   &__badge {
     display: inline-flex;
     align-items: center;
@@ -379,26 +482,26 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     background: color-mix(in srgb, var(--badge-color, #94a3b8) 16%, white);
     color: var(--badge-color, #475569);
 
-    // .task-slideout__badge--priority-low
+    // .task-modal__badge--priority-low
     &--priority-low {
       background: #eef2ff;
       color: #4f46e5;
     }
 
-    // .task-slideout__badge--priority-medium
+    // .task-modal__badge--priority-medium
     &--priority-medium {
       background: #fef3c7;
       color: #b45309;
     }
 
-    // .task-slideout__badge--priority-high
+    // .task-modal__badge--priority-high
     &--priority-high {
       background: #fee2e2;
       color: #dc2626;
     }
   }
 
-  // .task-slideout__badge-dot
+  // .task-modal__badge-dot
   &__badge-dot {
     width: 6px;
     height: 6px;
@@ -406,14 +509,14 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     background: currentColor;
   }
 
-  // .task-slideout__tags
+  // .task-modal__tags
   &__tags {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
   }
 
-  // .task-slideout__tag-chip
+  // .task-modal__tag-chip
   &__tag-chip {
     padding: 4px 10px;
     font-size: 11px;
@@ -423,13 +526,13 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     border-radius: 8px;
   }
 
-  // .task-slideout__avatars
+  // .task-modal__avatars
   &__avatars {
     display: flex;
     align-items: center;
   }
 
-  // .task-slideout__avatar
+  // .task-modal__avatar
   &__avatar {
     display: flex;
     align-items: center;
@@ -456,13 +559,13 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     }
   }
 
-  // .task-slideout__empty-hint
+  // .task-modal__empty-hint
   &__empty-hint {
     font-size: 0.75rem;
     color: #94a3b8;
   }
 
-  // .task-slideout__description
+  // .task-modal__description
   &__description {
     padding: 16px;
     margin-bottom: 20px;
@@ -470,7 +573,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     border-radius: 12px;
   }
 
-  // .task-slideout__description-title
+  // .task-modal__description-title
   &__description-title {
     margin: 0 0 8px;
     font-size: 0.875rem;
@@ -478,7 +581,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     color: #0f172a;
   }
 
-  // .task-slideout__description-text
+  // .task-modal__description-text
   &__description-text {
     margin: 0;
     font-size: 0.75rem;
@@ -487,7 +590,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     color: #475569;
   }
 
-  // .task-slideout__tabs
+  // .task-modal__tabs
   &__tabs {
     position: sticky;
     top: 0;
@@ -498,7 +601,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     border-bottom: 1px solid #e2e8f0;
   }
 
-  // .task-slideout__tab
+  // .task-modal__tab
   &__tab {
     padding: 12px 0;
     font-size: 0.875rem;
@@ -509,7 +612,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     border-bottom: 2px solid transparent;
     cursor: pointer;
 
-    // .task-slideout__tab--active
+    // .task-modal__tab--active
     &--active {
       font-weight: 600;
       color: #4f46e5;
@@ -517,36 +620,36 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
     }
   }
 
-  // .task-slideout__tab-content
+  // .task-modal__tab-content
   &__tab-content {
     padding: 20px 24px 32px;
   }
 }
 
-.task-slideout__backdrop {
+.task-modal__backdrop {
   position: fixed;
   inset: 0;
   background: rgb(15 23 42 / 45%);
   z-index: 50;
 }
 
-.task-slideout-fade-enter-active,
-.task-slideout-fade-leave-active {
+.task-modal-fade-enter-active,
+.task-modal-fade-leave-active {
   transition: opacity 250ms ease;
 }
 
-.task-slideout-fade-enter-from,
-.task-slideout-fade-leave-to {
+.task-modal-fade-enter-from,
+.task-modal-fade-leave-to {
   opacity: 0;
 }
 
-.task-slideout-slide-enter-active,
-.task-slideout-slide-leave-active {
+.task-modal-slide-enter-active,
+.task-modal-slide-leave-active {
   transition: transform 250ms ease;
 }
 
-.task-slideout-slide-enter-from,
-.task-slideout-slide-leave-to {
+.task-modal-slide-enter-from,
+.task-modal-slide-leave-to {
   transform: translateX(100%);
 }
 </style>
