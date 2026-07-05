@@ -22,12 +22,7 @@ Production-quality Task Manager built as part of a Frontend Engineer assessment.
 
 ## Project Setup
 
-Install dependencies:
-
-- @lucide/vue – Used for consistent, lightweight SVG icons across the application (view toggle, priority indicators, task actions, sorting, etc.).
-  npm install @lucide/vue
-- sass-embedded – Sass compiler used to process SCSS styles.
-  npm install -D sass-embedded
+### Install dependencies
 
 ```bash
 npm install
@@ -56,6 +51,31 @@ Format:
 ```bash
 npm run format
 ```
+
+### Key Dependencies
+
+- **Vue 3** – UI framework using the Composition API.
+- **Vue Router** – Client-side routing.
+- **TypeScript** – Static type checking.
+- **Lucide Vue** – Lightweight SVG icon library.
+- **Sass** – Component-scoped styling with SCSS.
+- **ESLint & Prettier** – Code quality and formatting.
+
+---
+
+## Repository Branches
+
+The repository contains two branches:
+
+- **main** – Snapshot of the project at the end of the official assessment timeframe. No further changes have been made to this branch after the submission deadline.
+- **dev** – Active development branch containing the latest enhancements and refinements, including:
+  - Create, edit, and delete task workflows
+  - Inline form validation
+  - Lead and team assignment
+  - UI improvements and bug fixes
+  - Additional code cleanup and refactoring
+
+> **Note:** The **main** branch represents the assessment submission, while **dev** contains post-submission improvements and the most up-to-date version of the project.
 
 ---
 
@@ -184,25 +204,82 @@ Goals:
 - ✅ List view
 - ✅ Drag and Drop
 - ✅ Show modal
-- ✅Sorting
-- ✅Responsive UI
-- ✅README completion
-
-Remaining implementation:
-
-- Create task
-- Edit Task
-- Delete Task
+- ✅ Sorting
+- ✅ Responsive UI
+- ✅ README completion
+- ✅ Create task
+- ✅ Edit Task
+- ✅ Delete Task
+- ✅ Validation (Title and Description)
 
 ---
 
+## Features
+
+### Kanban Board
+
+- Three-column Kanban board (Todo, In Progress, Done)
+- Native HTML5 drag-and-drop
+- Empty states
+- Overdue indicators
+- Priority badges
+
+### List View
+
+- Sort by due date
+- Sort by priority
+- Persistent view selection
+
+## Data Model
+
+The original assessment defines a single assignee field.
+
+To better support the provided modal design, the model was extended to separate ownership from collaboration.
+
+```ts
+interface Task {
+  ...
+
+  assigneeId: string
+  assignees: string[]
+
+  ...
+}
+```
+
 ## Known Limitations
 
-The following functionality has not yet been completed:
+### Drag and Drop in List View
 
-- **Create Task** – The task creation UI is implemented, but the create workflow is not fully wired to `TaskManager.createTask()`.
-- **Edit Task** – The edit dialog is present, but changes are not currently persisted back to the task manager.
-- **Delete Task** – The delete action and confirmation flow are not yet connected to `TaskManager.deleteTask()`.
+Drag-and-drop is supported only in the Kanban board. The List view is intended as a sortable overview rather than an interactive board.
+
+### Empty Kanban Columns
+
+When all tasks are moved out of a column, new tasks cannot currently be dropped into that empty column because there is no drop target rendered. This could be addressed by making the empty state itself a valid drop zone.
+
+### Fixed Workflow Statuses
+
+The application uses three predefined statuses: **Todo**, **In Progress**, and **Done**. Creating, renaming, or deleting workflow columns is not currently supported.
+
+### Filtering and Grouping
+
+Priority and assignee filtering, as well as grouping options, were not implemented within the assessment timeframe. The architecture has been designed so these features can be added through additional `TaskManager` methods without changing the component hierarchy.
+
+### Row Selection Checkbox
+
+The list view includes a checkbox for each task row to match the design reference. However, the assessment does not specify its intended behaviour (for example, bulk selection or batch actions), so it is currently presented as a visual element only.
+
+### Responsive Behaviour
+
+The application has been optimized for the required minimum viewport width of **1280px**. A dedicated mobile or tablet layout has not been implemented.
+
+### Mock Data Persistence
+
+The application operates entirely on mock data loaded into memory. Changes are not persisted across page refreshes. In a production environment, the `TaskManager` would communicate with a backend service or persistence layer.
+
+### Automated Testing
+
+Due to the assessment timeframe, automated unit and component tests were not implemented. The `TaskManager` class would be the primary focus for unit testing because it encapsulates the application's business logic independently of the Vue components.
 
 ### Row Checkbox
 
@@ -246,23 +323,21 @@ Given additional time, `TaskManager` would be the primary target for unit testin
 
 **With more time:** I would compare elements from the other design variations through usability testing and incorporate the strongest ideas into a more refined final design.
 
-### 2. Fixed sidebar with scrollable content
+### 2. Lead and Team Assignment
 
-**Decision:** The sidebar remains fixed while only the main content area scrolls.
+**Decision:** The original assessment model used a single `assignee` field. I extended the model to separate the **Lead** (person accountable for the task) from the **Team** (collaborators working on the task).
 
-**Why:** This keeps navigation visible at all times, allowing users to switch sections without losing their place in the task list.
+**Why:** In real-world project management, ownership and collaboration are different concepts. Separating them makes responsibilities clearer while allowing multiple team members to contribute to the same task. To maintain data consistency, the selected lead is automatically included in the assigned team.
 
-**With more time:** Make the sidebar collapsible and optimize it for smaller screens.
+**With more time:** I would introduce roles such as Reviewer and Watcher, add search and grouping to the user picker, and integrate permission-based assignment rules backed by a real user management system.
 
----
+### 3. Avatar-Based Team Representation
 
-### 3. Row hover feedback
+**Decision:** Team members are represented by avatars rather than displaying a list of names.
 
-**Decision:** Added a subtle hover state for each table row.
+**Why:** Avatars make the interface easier to scan and reduce visual clutter while still providing immediate recognition of assigned team members.
 
-**Why:** The hover effect makes it easier to identify the active row and improves usability when scanning or interacting with tasks.
-
-**With more time:** Add keyboard focus and selected-row states to improve accessibility.
+**With more time:** I would add overflow handling (for example, "+3"), tooltips, and online presence indicators.
 
 ---
 
@@ -280,19 +355,24 @@ These three read well in a README because they explain **what you chose, why you
 | --------------- | ---------------------------------------------------------------- | -----------: |
 | Setup           | Project scaffold, types, mock data, `TaskManager` skeleton       |        3 hrs |
 | Business Logic  | CRUD, filtering, sorting, bug fixes                              |        8 hrs |
-| Kanban Board    | Board, columns, cards, native drag-and-drop                      |        5 hrs |
+| Kanban Board    | Board, columns, cards, native drag-and-drop                      |        6 hrs |
 | List View       | Sections, rows, sorting, persistence                             |        5 hrs |
-| Task Management | Task modal                                                       |        2 hrs |
-| UI Polish       | Styling, badges, avatars, overdue states, responsive adjustments |        3 hrs |
-| Documentation   | README and final cleanup                                         |        2 hrs |
+| Task Management | Task modal & CRUD                                                |        7 hrs |
+| UI Polish       | Styling, badges, avatars, overdue states, responsive adjustments |        4 hrs |
+| Documentation   | README and final cleanup                                         |        3 hrs |
 
-**Total:** ~28 hours
+**Total:** ~36 hours
 
 ## Assumptions
 
-The project intentionally follows a layered architecture where business logic is completely separated from Vue components.
+The assessment's original data model contained a single assignee field.
 
-All UI interactions communicate with the `TaskManager` instance instead of directly mutating application state.
+Because the supplied design presented a richer assignment experience, the model was extended with:
+
+- assigneeId (Lead)
+- assignees (Team)
+
+This was done to better represent ownership and collaboration while keeping all business logic inside TaskManager.
 
 ---
 
