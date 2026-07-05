@@ -14,6 +14,7 @@ import {
   ChevronDown,
 } from '@lucide/vue'
 import type {
+  FormErrors,
   Task,
   TaskForm,
   TaskModalTab,
@@ -49,6 +50,8 @@ const formData = reactive<TaskForm>({
   createdAt: '',
 })
 
+const errors = reactive<FormErrors>({})
+
 const populateForm = (task: Task): void => {
   Object.assign(formData, {
     ...task,
@@ -80,6 +83,21 @@ const resetForm = (): void => {
 }
 
 populateForm(task)
+
+const validate = (): boolean => {
+  errors.title = ''
+  errors.description = ''
+
+  if (!formData.title.trim()) {
+    errors.title = 'Title is required'
+  }
+
+  if (!formData.description.trim()) {
+    errors.description = 'Description is required'
+  }
+
+  return !errors.title && !errors.description
+}
 
 const columns = computed(() => taskManager.getCloumns())
 
@@ -125,9 +143,14 @@ const deleteTask = (): void => {
 }
 const cancel = (): void => {
   resetForm()
+  closeModal()
 }
 
 const save = (): void => {
+  if (!validate()) {
+    return
+  }
+
   const { id, ...payload } = formData
   if (formData.id) {
     taskManager.updateTask(id, payload)
@@ -169,6 +192,19 @@ watch(
     }
   },
   { immediate: true },
+)
+
+watch(
+  () => formData.assigneeId,
+  (leadId) => {
+    if (!leadId) {
+      return
+    }
+
+    if (!formData.assignees.includes(leadId)) {
+      formData.assignees.push(leadId)
+    }
+  },
 )
 
 onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
@@ -215,7 +251,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
             v-model="formData.title"
             placeholder="Task Title"
             class="task-modal__title-input"
+            :class="{ 'task-modal__field--error': errors.title }"
           />
+          <code v-if="errors.title" class="task-modal__error">
+            {{ errors.title }}
+          </code>
 
           <!-- meta -->
           <dl class="task-modal__meta">
@@ -412,8 +452,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
               rows="4"
               placeholder="Description"
               class="task-modal__text-input"
+              :class="{ 'task-modal__field--error': errors.description }"
             />
-            <!-- <p v-else class="task-modal__description-text">No description</p> -->
+            <code v-if="errors.description" class="task-modal__error">
+              {{ errors.description }}
+            </code>
           </div>
         </div>
 
@@ -982,5 +1025,17 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       }
     }
   }
+}
+
+.task-modal__field {
+  &--error {
+    border-bottom: 1px solid var(--btn-danger);
+  }
+}
+
+.task-modal__error {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--danger);
 }
 </style>

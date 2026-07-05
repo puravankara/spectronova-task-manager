@@ -96,3 +96,8 @@ export interface TaskModalTab {
   label: string
   value: TaskModalTabValue
 }
+
+export interface FormErrors {
+  title?: string
+  description?: string
+}
