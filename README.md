@@ -22,12 +22,7 @@ Production-quality Task Manager built as part of a Frontend Engineer assessment.
 
 ## Project Setup
 
-Install dependencies:
-
-- @lucide/vue – Used for consistent, lightweight SVG icons across the application (view toggle, priority indicators, task actions, sorting, etc.).
-  npm install @lucide/vue
-- sass-embedded – Sass compiler used to process SCSS styles.
-  npm install -D sass-embedded
+### Install dependencies
 
 ```bash
 npm install
@@ -56,6 +51,31 @@ Format:
 ```bash
 npm run format
 ```
+
+### Key Dependencies
+
+- **Vue 3** – UI framework using the Composition API.
+- **Vue Router** – Client-side routing.
+- **TypeScript** – Static type checking.
+- **Lucide Vue** – Lightweight SVG icon library.
+- **Sass** – Component-scoped styling with SCSS.
+- **ESLint & Prettier** – Code quality and formatting.
+
+---
+
+## Repository Branches
+
+The repository contains two branches:
+
+- **main** – Snapshot of the project at the end of the official assessment timeframe. No further changes have been made to this branch after the submission deadline.
+- **dev** – Active development branch containing the latest enhancements and refinements, including:
+  - Create, edit, and delete task workflows
+  - Inline form validation
+  - Lead and team assignment
+  - UI improvements and bug fixes
+  - Additional code cleanup and refactoring
+
+> **Note:** The **main** branch represents the assessment submission, while **dev** contains post-submission improvements and the most up-to-date version of the project.
 
 ---
 
