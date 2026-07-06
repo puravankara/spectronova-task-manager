@@ -87,6 +87,7 @@ populateForm(task)
 const validate = (): boolean => {
   errors.title = ''
   errors.description = ''
+  errors.dueDate = ''
 
   if (!formData.title.trim()) {
     errors.title = 'Title is required'
@@ -96,7 +97,19 @@ const validate = (): boolean => {
     errors.description = 'Description is required'
   }
 
-  return !errors.title && !errors.description
+  if (!formData.id && formData.dueDate) {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const dueDate = new Date(formData.dueDate)
+    dueDate.setHours(0, 0, 0, 0)
+
+    if (dueDate < today) {
+      errors.dueDate = 'Due date cannot be in the past'
+    }
+  }
+
+  return !errors.title && !errors.description && !errors.dueDate
 }
 
 const columns = computed(() => taskManager.getCloumns())
@@ -330,8 +343,12 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
                   name="modal-due-date"
                   id="modal-due-date"
                   class="task-modal__date-input"
+                  :class="{ 'task-modal__field--error': errors.dueDate }"
                 />
                 <span v-if="isOverdue" class="task-modal__overdue-tag">Overdue</span>
+                <code v-if="errors.dueDate" class="task-modal__error">
+                  {{ errors.dueDate }}
+                </code>
               </dd>
             </div>
 

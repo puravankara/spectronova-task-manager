@@ -100,4 +100,5 @@ export interface TaskModalTab {
 export interface FormErrors {
   title?: string
   description?: string
+  dueDate?: string
 }
